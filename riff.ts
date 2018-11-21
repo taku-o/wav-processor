@@ -39,6 +39,11 @@ export class Riff implements Chunk {
         chunk.subChunks.push(sub);
         pos += sub.chunkLength;
         continue;
+      } else if (iXml.isChunk(buffer.slice(pos))) {
+        const sub = iXml.from(buffer.slice(pos));
+        chunk.subChunks.push(sub);
+        pos += sub.chunkLength;
+        continue;
       } else {
         break;
       }
@@ -73,6 +78,11 @@ export class Riff implements Chunk {
       chunk.write(buffer.slice(offset));
       offset += chunk.chunkLength;
     }
+  }
+  appendChunk(chunk: Chunk): void {
+    this.subChunks.push(chunk);
+    this.size += chunk.chunkLength;
+    this.chunkLength += chunk.chunkLength;
   }
 }
 
@@ -180,6 +190,74 @@ class WavData implements Chunk {
     buffer.writeUIntLE(this.size, 4, 4);
     // 9-   Subchunk2 data
     this.wavBuffer.copy(buffer, 8, 0, this.size);
+  }
+}
+
+export class iXml implements Chunk {
+  chunkLength: number;
+  readonly id: string = 'iXML';
+  size: number;
+  data: string;
+  readableData: string;
+
+  constructor() {}
+  static isChunk(buffer: Buffer) {
+    const id = buffer.readUIntBE(0, 4);
+    const idName = Buffer.from(id.toString(16), 'hex').toString();
+    return idName == 'iXML';
+  }
+  static from(buffer: Buffer) {
+    const chunk = new iXml();
+    // 1-4 Subchunk3 ID "iXML"
+    // 5-8 Subchunk3 Size
+    chunk.size = buffer.readUIntLE(4, 4);
+    chunk.chunkLength = chunk.size + 8;
+    // 9-   Subchunk3 data
+    const d = buffer.readUIntBE(8, chunk.size);
+    chunk.data = Buffer.from(d.toString(16), 'hex').toString();
+    chunk.readableData = chunk.data.replace(/&lt;/, '<').replace(/&gt;/, '>').replace(/&amp;/, '&');
+    // return
+    return chunk;
+  }
+  static createWithRole(roleName: string) {
+    const readableData = `<?xml version="1.0" encoding="UTF-8"?>
+<BWFXML>
+    <TRACK_LIST>
+        <TRACK_COUNT>1</TRACK_COUNT>
+        <TRACK>
+            <CHANNEL_INDEX>1</CHANNEL_INDEX>
+            <INTERLEAVE_INDEX>1</INTERLEAVE_INDEX>
+            <NAME>${roleName}</NAME>
+        </TRACK>
+    </TRACK_LIST>
+</BWFXML>`;
+    const data = readableData.replace(/</, '&lt;').replace(/>/, '&gt;').replace(/&/, '&amp;');
+
+    const chunk = new iXml();
+    // 1-4 Subchunk3 ID "iXML"
+    // 5-8 Subchunk3 Size
+    chunk.size = Buffer.byteLength(data);
+    chunk.chunkLength = chunk.size + 8;
+    // 9-   Subchunk3 data
+    chunk.data = data;
+    chunk.readableData = readableData;
+    // return
+    return chunk;
+  }
+  printTable(offset: number): any {
+    let tables = [];
+    tables.push({ position: offset,    length: 4,         header: 'Subchunk2 ID "data"', data: this.id, });
+    tables.push({ position: offset+4,  length: 4,         header: 'Subchunk2 Size',      data: this.size, });
+    tables.push({ position: offset+8,  length: this.size, header: 'iXML Data',           data: this.readableData, });
+    return tables;
+  }
+  write(buffer: Buffer): void {
+    // 1-4 Subchunk3 ID "iXML"
+    Buffer.from(this.id).copy(buffer, 0, 0, 4)
+    // 5-8 Subchunk3 Size
+    buffer.writeUIntLE(this.size, 4, 4);
+    // 9-   Subchunk3 data
+    Buffer.from(this.data).copy(buffer, 8, 0, this.size);
   }
 }
 
