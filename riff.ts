@@ -130,8 +130,9 @@ class WavData implements Chunk {
   }
   printTable(offset: number): any {
     let tables = [];
-    tables.push({ position: offset,    length: 4, header: 'Subchunk2 ID "data"', data: this.id, });
-    tables.push({ position: offset+4,  length: 4, header: 'Subchunk2 Size',      data: this.size, });
+    tables.push({ position: offset,    length: 4,         header: 'Subchunk2 ID "data"', data: this.id, });
+    tables.push({ position: offset+4,  length: 4,         header: 'Subchunk2 Size',      data: this.size, });
+    tables.push({ position: offset+8,  length: this.size, header: 'Wave Data',           data: '******', });
     return tables;
   }
 }
