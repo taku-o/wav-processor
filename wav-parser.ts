@@ -9,7 +9,7 @@ fs.readFile('sample.wav', 'binary', (err, content) => {
   }
 
   let buffer = Buffer.from(content, 'binary');
-  let chunk = Riff.from(buffer, 0);
+  let chunk = Riff.from(buffer);
   console.table(chunk.printTable(0));
 });
 

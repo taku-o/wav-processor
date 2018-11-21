@@ -1,39 +1,43 @@
 interface Chunk {
+  chunkLength: number;
   readonly id: string;
   size: number;
   printTable(offset: number): any;
+  //write(buffer: Buffer): void;
 }
 
 export class Riff implements Chunk {
+  chunkLength: number;
   readonly id: string     = 'RIFF';
   size: number;
   readonly format: string = 'WAVE';
   subChunks: Chunk[]      = [];
 
   constructor() {}
-  static isChunk(buffer: Buffer, offset: number) {
-    const id = buffer.readUIntBE(offset, 4);
+  static isChunk(buffer: Buffer) {
+    const id = buffer.readUIntBE(0, 4);
     const idName = Buffer.from(id.toString(16), 'hex').toString();
     return idName == 'RIFF';
   }
-  static from(buffer: Buffer, offset: number) {
+  static from(buffer: Buffer) {
     const chunk = new Riff();
     // 1-4 Chunk ID "RIFF"
     // 5-8 Chunk Size
-    chunk.size = buffer.readUIntLE(offset+4, 4);
+    chunk.size = buffer.readUIntLE(4, 4);
+    chunk.chunkLength = chunk.size + 8;
     // 9-12  Format "WAVE"
     // 13-   SubChunks
     let pos = 12;
-    while (pos < chunk.size + 8) {
-      if (Fmt.isChunk(buffer, pos)) {
-        const sub = Fmt.from(buffer, pos);
+    while (pos < chunk.chunkLength) {
+      if (Fmt.isChunk(buffer.slice(pos))) {
+        const sub = Fmt.from(buffer.slice(pos));
         chunk.subChunks.push(sub);
-        pos += 8 + sub.size;
+        pos += sub.chunkLength;
         continue;
-      } else if (WavData.isChunk(buffer, pos)) {
-        const sub = WavData.from(buffer, pos);
+      } else if (WavData.isChunk(buffer.slice(pos))) {
+        const sub = WavData.from(buffer.slice(pos));
         chunk.subChunks.push(sub);
-        pos += 8 + sub.size;
+        pos += sub.chunkLength;
         continue;
       } else {
         break;
@@ -50,15 +54,16 @@ export class Riff implements Chunk {
 
     offset = 12;
     for (let chunk of this.subChunks) {
-      let tableInfos = chunk.printTable(offset);
+      let tableInfos = chunk.printTable(offset = 0);
       tables = tables.concat(tableInfos);
-      offset += 8 + chunk.size;
+      offset += chunk.chunkLength;
     }
     return tables;
   }
 }
 
 class Fmt implements Chunk {
+  readonly chunkLength: number = 24;
   readonly id: string          = 'fmt ';
   readonly size: number        = 16;
   readonly audioFormat: number = 1;
@@ -69,26 +74,26 @@ class Fmt implements Chunk {
   bitsPerSample: number;
 
   constructor() {}
-  static isChunk(buffer: Buffer, offset: number) {
-    const id = buffer.readUIntBE(offset, 4);
+  static isChunk(buffer: Buffer) {
+    const id = buffer.readUIntBE(0, 4);
     const idName = Buffer.from(id.toString(16), 'hex').toString();
     return idName == 'fmt ';
   }
-  static from(buffer: Buffer, offset: number) {
+  static from(buffer: Buffer) {
     const chunk = new Fmt();
     // 1-4 Subchunk1 ID "fmt"
     // 5-8 Subchunk1 Size "16"
     // 9-10 Audio Format "1"
     // 11-12 Num Channels
-    chunk.numChannels = buffer.readUIntLE(offset+10, 2);
+    chunk.numChannels = buffer.readUIntLE(10, 2);
     // 13-16 Sample Rate
-    chunk.sampleRate = buffer.readUIntLE(offset+12, 4);
+    chunk.sampleRate = buffer.readUIntLE(12, 4);
     // 17-20 Byte Rate
-    chunk.byteRate = buffer.readUIntLE(offset+16, 4);
+    chunk.byteRate = buffer.readUIntLE(16, 4);
     // 21-22 Block Align
-    chunk.blockAlign = buffer.readUIntLE(offset+20, 2);
+    chunk.blockAlign = buffer.readUIntLE(20, 2);
     // 23-24 Bits Per Sample
-    chunk.bitsPerSample = buffer.readUIntLE(offset+22, 2);
+    chunk.bitsPerSample = buffer.readUIntLE(22, 2);
     // return
     return chunk;
   }
@@ -107,24 +112,25 @@ class Fmt implements Chunk {
 }
 
 class WavData implements Chunk {
+  chunkLength: number;
   readonly id: string = 'data';
   size: number;
   wavBuffer: Buffer;
 
   constructor() {}
-  static isChunk(buffer: Buffer, offset: number) {
-    const id = buffer.readUIntBE(offset, 4);
+  static isChunk(buffer: Buffer) {
+    const id = buffer.readUIntBE(0, 4);
     const idName = Buffer.from(id.toString(16), 'hex').toString();
     return idName == 'data';
   }
-  static from(buffer: Buffer, offset: number) {
+  static from(buffer: Buffer) {
     const chunk = new WavData();
     // 1-4 Subchunk2 ID "data"
     // 5-8 Subchunk2 Size
-    chunk.size = buffer.readUIntLE(offset+4, 4);
+    chunk.size = buffer.readUIntLE(4, 4);
+    chunk.chunkLength = chunk.size + 8;
     // 9-   Subchunk2 data
-    chunk.wavBuffer = Buffer.alloc(8 + chunk.size);
-    buffer.copy(chunk.wavBuffer, 0, offset+8, chunk.size)
+    chunk.wavBuffer = buffer.slice(8, chunk.size);
     // return
     return chunk;
   }
