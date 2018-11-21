@@ -2,27 +2,6 @@
 import * as fs from 'fs';
 const cTable = require('console.table');
 
-//function split2c(chars) {
-//  const result = [];
-//  result.push(chars.substr(0, 2));
-//    console.log(String.fromCharCode(0x52));
-//  if (chars.substr(2) != '') {
-//    const rest = split2c(chars.substr(2));
-//    result.concat(rest);
-//  }
-//  return result;
-//}
-//
-//function toAscii(num) {
-//  let result = '';
-//  const ars = split2c(num);
-//  for (let num of ars) {
-//    const c = String.fromCharCode(num);
-//    result += c;
-//  }
-//  return result;
-//}
-
 fs.readFile('sample.wav', 'binary', (err, content) => {
   if (err) {
     console.error(err); return;
