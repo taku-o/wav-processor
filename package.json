@@ -1,0 +1,29 @@
+{
+  "name": "wav-processor",
+  "version": "0.0.1",
+  "description": "wav file processor.",
+  "main": "main.js",
+  "types": "types.d.ts",
+  "scripts": {
+    "tsc": "tsc",
+    "clean": "rm *.js"
+  },
+  "keywords": [
+    "javascript",
+    "node",
+    "wav"
+  ],
+  "homepage": "https://github.com/taku-o/wav-processor",
+  "bugs": {
+    "url": "https://github.com/taku-o/wav-processor/issues",
+    "email": "mail@nanasi.jp"
+  },
+  "author": "taku-o <mail@nanasi.jp> (http://nanasi.jp/)",
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "^10.11.7"
+  },
+  "devDependencies": {
+    "typescript": "^3.1.3"
+  }
+}
