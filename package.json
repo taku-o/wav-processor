@@ -5,7 +5,9 @@
   "main": "main.js",
   "types": "types.d.ts",
   "scripts": {
+    "parser-simple": "tsc && node wav-parser-simple.js",
     "parser": "tsc && node wav-parser.js",
+    "writer": "tsc && node wav-writer.js",
     "tsc": "tsc",
     "clean": "rm *.js"
   },

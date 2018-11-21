@@ -3,7 +3,7 @@ interface Chunk {
   readonly id: string;
   size: number;
   printTable(offset: number): any;
-  //write(buffer: Buffer): void;
+  write(buffer: Buffer): void;
 }
 
 export class Riff implements Chunk {
@@ -54,11 +54,25 @@ export class Riff implements Chunk {
 
     offset = 12;
     for (let chunk of this.subChunks) {
-      let tableInfos = chunk.printTable(offset = 0);
+      let tableInfos = chunk.printTable(0);
       tables = tables.concat(tableInfos);
       offset += chunk.chunkLength;
     }
     return tables;
+  }
+  write(buffer: Buffer): void {
+    // 1-4 Chunk ID "RIFF"
+    Buffer.from(this.id).copy(buffer, 0, 0, 4)
+    // 5-8 Chunk Size
+    buffer.writeUIntLE(this.size, 4, 4);
+    // 9-12  Format "WAVE"
+    Buffer.from(this.format).copy(buffer, 8, 0, 4)
+    // 13-   SubChunks
+    let offset = 12;
+    for (let chunk of this.subChunks) {
+      chunk.write(buffer.slice(offset));
+      offset += chunk.chunkLength;
+    }
   }
 }
 
@@ -109,6 +123,24 @@ class Fmt implements Chunk {
     tables.push({ position: offset+22, length: 2, header: 'Bits Per Sample',      data: this.bitsPerSample, });
     return tables;
   }
+  write(buffer: Buffer): void {
+    // 1-4 Subchunk1 ID "fmt"
+    Buffer.from(this.id).copy(buffer, 0, 0, 4)
+    // 5-8 Subchunk1 Size "16"
+    buffer.writeUIntLE(this.size, 4, 4);
+    // 9-10 Audio Format "1"
+    buffer.writeUIntLE(this.audioFormat, 8, 2);
+    // 11-12 Num Channels
+    buffer.writeUIntLE(this.numChannels, 10, 2);
+    // 13-16 Sample Rate
+    buffer.writeUIntLE(this.sampleRate, 12, 4);
+    // 17-20 Byte Rate
+    buffer.writeUIntLE(this.byteRate, 16, 4);
+    // 21-22 Block Align
+    buffer.writeUIntLE(this.blockAlign, 20, 2);
+    // 23-24 Bits Per Sample
+    buffer.writeUIntLE(this.bitsPerSample, 22, 2);
+  }
 }
 
 class WavData implements Chunk {
@@ -140,6 +172,14 @@ class WavData implements Chunk {
     tables.push({ position: offset+4,  length: 4,         header: 'Subchunk2 Size',      data: this.size, });
     tables.push({ position: offset+8,  length: this.size, header: 'Wave Data',           data: '******', });
     return tables;
+  }
+  write(buffer: Buffer): void {
+    // 1-4 Subchunk2 ID "data"
+    Buffer.from(this.id).copy(buffer, 0, 0, 4)
+    // 5-8 Subchunk2 Size
+    buffer.writeUIntLE(this.size, 4, 4);
+    // 9-   Subchunk2 data
+    this.wavBuffer.copy(buffer, 8, 0, this.size);
   }
 }
 
