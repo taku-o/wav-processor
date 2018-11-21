@@ -22,7 +22,8 @@
   "author": "taku-o <mail@nanasi.jp> (http://nanasi.jp/)",
   "license": "MIT",
   "dependencies": {
-    "@types/node": "^10.11.7"
+    "@types/node": "^10.11.7",
+    "console.table": "^0.10.0"
   },
   "devDependencies": {
     "typescript": "^3.1.3"
