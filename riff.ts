@@ -6,6 +6,9 @@ interface Chunk {
   write(buffer: Buffer): void;
 }
 
+/**
+ * RIFF
+ */
 export class Riff implements Chunk {
   chunkLength: number;
   readonly id: string     = 'RIFF';
@@ -86,6 +89,9 @@ export class Riff implements Chunk {
   }
 }
 
+/**
+ * fmt Chunk
+ */
 class Fmt implements Chunk {
   readonly chunkLength: number = 24;
   readonly id: string          = 'fmt ';
@@ -153,6 +159,9 @@ class Fmt implements Chunk {
   }
 }
 
+/**
+ * Wave Data Chunk
+ */
 class WavData implements Chunk {
   chunkLength: number;
   readonly id: string = 'data';
@@ -246,8 +255,8 @@ export class iXml implements Chunk {
   }
   printTable(offset: number): any {
     let tables = [];
-    tables.push({ position: offset,    length: 4,         header: 'Subchunk2 ID "data"', data: this.id, });
-    tables.push({ position: offset+4,  length: 4,         header: 'Subchunk2 Size',      data: this.size, });
+    tables.push({ position: offset,    length: 4,         header: 'Subchunk3 ID "data"', data: this.id, });
+    tables.push({ position: offset+4,  length: 4,         header: 'Subchunk3 Size',      data: this.size, });
     tables.push({ position: offset+8,  length: this.size, header: 'iXML Data',           data: this.readableData, });
     return tables;
   }
