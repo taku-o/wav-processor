@@ -2,6 +2,7 @@
 .swp
 Thumbs.db
 *.js
+!riff.js
 !wav-parser.js
 /node_modules/
 

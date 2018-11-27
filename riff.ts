@@ -57,7 +57,7 @@ export class Riff implements Chunk {
 
     offset = 12;
     for (let chunk of this.subChunks) {
-      let tableInfos = chunk.printTable(0);
+      let tableInfos = chunk.printTable(offset);
       tables = tables.concat(tableInfos);
       offset += chunk.chunkLength;
     }
