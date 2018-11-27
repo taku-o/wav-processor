@@ -1,15 +1,11 @@
 {
   "name": "wav-processor",
   "version": "0.0.1",
-  "description": "wav file processor.",
+  "description": "parse, and display wav file information script.",
   "main": "main.js",
   "types": "types.d.ts",
   "scripts": {
-    "parser-simple": "tsc && node wav-parser-simple.js",
-    "parser": "tsc && node wav-parser.js",
-    "writer": "tsc && node wav-writer.js",
-    "append": "tsc && node wav-chunk-append.js",
-    "awrite": "tsc && node wav-chunk-writer.js",
+    "parse": "node wav-parser.js",
     "tsc": "tsc",
     "clean": "rm *.js"
   },
